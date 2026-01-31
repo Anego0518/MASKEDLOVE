@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <defs>
+    <linearGradient id="maleBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#4a5568"/>
+      <stop offset="100%" style="stop-color:#2d3748"/>
+    </linearGradient>
+  </defs>
+  <rect width="200" height="200" rx="100" fill="url(#maleBg)"/>
+  <!-- face oval -->
+  <ellipse cx="100" cy="95" rx="42" ry="52" fill="#e2e8f0"/>
+  <!-- hair -->
+  <path d="M58 55 Q60 30 100 28 Q140 30 142 55 Q138 75 100 78 Q62 75 58 55" fill="#2d3748"/>
+  <!-- eyes -->
+  <ellipse cx="82" cy="90" rx="6" ry="8" fill="#1a202c"/>
+  <ellipse cx="118" cy="90" rx="6" ry="8" fill="#1a202c"/>
+  <!-- nose -->
+  <path d="M100 92 L98 105 L102 105 Z" fill="#cbd5e0"/>
+  <!-- mouth -->
+  <path d="M88 115 Q100 122 112 115" stroke="#718096" stroke-width="2" fill="none" stroke-linecap="round"/>
+  <text x="100" y="185" text-anchor="middle" fill="rgba(255,255,255,0.7)" font-size="14" font-family="sans-serif">7'Bj_	</text>
+</svg>

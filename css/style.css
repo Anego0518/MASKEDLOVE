@@ -92,6 +92,14 @@ button { font-family: inherit; cursor: pointer; }
   max-width: 280px;
 }
 
+.title-startGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  max-width: 280px;
+}
+
 .title-startBtn {
   padding: 14px 48px;
   font-size: 1.1rem;
@@ -104,6 +112,11 @@ button { font-family: inherit; cursor: pointer; }
 }
 
 .title-startBtn:hover { opacity: 0.95; transform: scale(1.02); }
+
+.title-startBtnSub {
+  background: linear-gradient(135deg, rgba(233, 30, 140, 0.6), rgba(173, 20, 87, 0.7));
+  border: 2px solid rgba(255, 255, 255, 0.3);
+}
 
 /* === ConditionPhase === */
 .condition-wrap { max-width: 360px; margin: 0 auto; }
@@ -179,18 +192,23 @@ button { font-family: inherit; cursor: pointer; }
 .edit-avatar { display: flex; justify-content: center; margin-bottom: 24px; }
 
 .edit-avatarInner {
-  width: 120px;
-  height: 120px;
+  width: 220px;
+  height: 220px;
   border-radius: 50%;
   background: linear-gradient(145deg, rgba(233, 30, 140, 0.3), rgba(173, 20, 87, 0.4));
   display: flex;
   align-items: center;
   justify-content: center;
   border: 3px solid rgba(233, 30, 140, 0.5);
-  transition: filter 0.15s ease, transform 0.15s ease;
+  overflow: hidden;
 }
 
-.edit-avatarPlaceholder { font-size: 0.9rem; font-weight: 600; color: rgba(255, 255, 255, 0.9); }
+.edit-playerImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: filter 0.15s ease, transform 0.15s ease;
+}
 
 .edit-sliders { display: flex; flex-direction: column; gap: 16px; margin-bottom: 24px; }
 
@@ -254,18 +272,23 @@ button { font-family: inherit; cursor: pointer; }
 }
 
 .match-cardAvatar {
-  width: 140px;
-  height: 140px;
-  margin: 0 auto 16px;
+  width: 220px;
+  height: 220px;
+  margin: 0 auto 8px;
   border-radius: 50%;
+  overflow: hidden;
   background: linear-gradient(145deg, rgba(233, 30, 140, 0.35), rgba(173, 20, 87, 0.45));
-  display: flex;
-  align-items: center;
-  justify-content: center;
   border: 3px solid rgba(233, 30, 140, 0.4);
 }
 
-.match-avatarText { font-size: 1rem; font-weight: 600; color: rgba(255, 255, 255, 0.95); }
+.match-partnerImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.match-avatarText { font-size: 1rem; font-weight: 600; color: rgba(255, 255, 255, 0.95); margin: 0 0 16px; }
 
 .match-cardDesc { font-size: 0.85rem; color: var(--color-muted); margin: 0 0 20px; }
 
@@ -321,6 +344,15 @@ button { font-family: inherit; cursor: pointer; }
 .match-nextBtn:hover { opacity: 0.95; }
 
 /* === DatePhase === */
+.date-bg {
+  min-height: 100%;
+  background-image: url('../images/date-bg.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  padding: 16px 0 24px;
+}
+
 .date-wrap { max-width: 360px; margin: 0 auto; }
 
 .date-h2 { font-size: 1.35rem; margin: 0 0 8px; color: var(--color-text); }
@@ -328,23 +360,28 @@ button { font-family: inherit; cursor: pointer; }
 .date-lead { font-size: 0.9rem; color: var(--color-muted); margin: 0 0 20px; }
 
 .date-partnerFace {
-  width: 100px;
-  height: 100px;
-  margin: 0 auto 20px;
+  width: 220px;
+  height: 220px;
+  margin: 0 auto 12px;
   border-radius: 50%;
+  overflow: hidden;
   background: linear-gradient(145deg, rgba(173, 20, 87, 0.4), rgba(233, 30, 140, 0.3));
-  border: 2px solid rgba(233, 30, 140, 0.4);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  border: 3px solid rgba(233, 30, 140, 0.4);
+}
+
+.date-partnerImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 
 .date-faceLabel {
-  font-size: 0.8rem;
+  font-size: 0.9rem;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.9);
+  color: rgba(255, 255, 255, 0.95);
   text-align: center;
-  padding: 4px;
+  margin-bottom: 20px;
 }
 
 .date-dialogue {

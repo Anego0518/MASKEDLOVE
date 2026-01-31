@@ -50,6 +50,15 @@ npm run dev
 - **ルート（Live Server）**: 静的 HTML + CSS + プレーン JavaScript（ビルド不要・`index.html` から起動）
 - **開発版（`src/`）**: React 18 + TypeScript, Vite, React Router, Zustand
 
+## 加工フェーズの「自分の写真」
+
+加工フェーズで表示されるプレイヤー画像は、ルート選択に応じて次のファイルを参照します。
+
+- **女性とマッチング** を選んだとき → `images/player-male.png`（男性＝あなた）
+- **男性とマッチング** を選んだとき → `images/player-female.png`（女性＝あなた）
+
+上記の PNG が無い場合は、同名的な SVG（`player-male.svg` / `player-female.svg`）が使われます。自分の顔写真を使う場合は、`images/` に **player-male.png** または **player-female.png** を置くと、そちらが優先して表示されます。
+
 ## プロジェクト構成
 
 - **`index.html`** — 静的版のエントリ（Live Server で開く）

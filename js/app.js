@@ -16,6 +16,7 @@
   var CHARACTERS = [
     {
       id: 'anna',
+      gender: 'female',
       name: 'アンナ',
       age: 28,
       desiredConditionIds: ['cute', 'gentle', 'warm'],
@@ -33,6 +34,27 @@
         { text: '今日は会えてよかった。また話そう。', nextIndex: -1 },
       ],
       compatibilityWeights: { smile: 1, listen: 1.2, easy: 0.8 },
+    },
+    {
+      id: 'akira',
+      gender: 'male',
+      name: 'アキラ',
+      age: 28,
+      desiredConditionIds: ['natural', 'calm', 'warm'],
+      dateLines: [
+        { text: '初めまして。写真とちょっと違う？まあ、いい意味で。', nextIndex: 1 },
+        {
+          text: 'どんな人に惹かれる？',
+          choices: [
+            { text: '笑顔が素敵な人', nextIndex: 2, affinityKey: 'smile' },
+            { text: '話を聞いてくれる人', nextIndex: 2, affinityKey: 'listen' },
+            { text: '一緒にいて楽な人', nextIndex: 2, affinityKey: 'easy' },
+          ],
+        },
+        { text: 'そうだね、それ大事だよね。僕もそう思う。', nextIndex: 3 },
+        { text: '今日は会えてよかった。また話そう。', nextIndex: -1 },
+      ],
+      compatibilityWeights: { smile: 1.2, listen: 1, easy: 0.8 },
     },
   ];
 
@@ -54,6 +76,7 @@
   // --- STORE ---
   var state = {
     phase: 'title',
+    playMode: null,
     partnerId: null,
     playerConditionIds: [],
     editParams: Object.assign({}, defaultEditParams),
@@ -67,7 +90,13 @@
   };
 
   function setPhase(p) { state.phase = p; }
+  function setPlayMode(mode) { state.playMode = mode; }
   function setPartner(id) { state.partnerId = id; }
+  function getCharacters() {
+    return state.playMode
+      ? CHARACTERS.filter(function (c) { return c.gender === state.playMode; })
+      : CHARACTERS;
+  }
   function setPlayerConditions(ids) { state.playerConditionIds = ids; }
   function setEditParams(p) {
     state.editParams = Object.assign({}, state.editParams, p);
@@ -99,6 +128,7 @@
   }
   function reset() {
     state.phase = 'title';
+    state.playMode = null;
     state.partnerId = null;
     state.playerConditionIds = [];
     state.editParams = Object.assign({}, defaultEditParams);
@@ -181,12 +211,22 @@
         '<img src="images/Title logo.png" alt="MASKED LOVE" class="title-logo">' +
         '<p class="title-sub">［加工］が当たり前の時代、本当の愛はどこにある？</p>' +
         '<p class="title-desc">マッチングアプリで結婚相手を見つけ、Happy END を迎えよう。</p>' +
-        '<button type="button" class="title-startBtn" id="btn-start">はじめる</button>' +
+        '<div class="title-startGroup">' +
+          '<button type="button" class="title-startBtn" id="btn-start-female">女性とマッチング</button>' +
+          '<button type="button" class="title-startBtn title-startBtnSub" id="btn-start-male">男性とマッチング</button>' +
+        '</div>' +
       '</div>',
       false
     );
-    document.getElementById('btn-start').onclick = function () {
-      setPartner(CHARACTERS[0].id);
+    document.getElementById('btn-start-female').onclick = function () {
+      setPlayMode('female');
+      setPartner(getCharacters()[0].id);
+      setPhase('condition');
+      navigateTo('condition');
+    };
+    document.getElementById('btn-start-male').onclick = function () {
+      setPlayMode('male');
+      setPartner(getCharacters()[0].id);
       setPhase('condition');
       navigateTo('condition');
     };
@@ -240,10 +280,27 @@
     };
   }
 
+  function getEditImageStyle(ep) {
+    var b = ep.beauty / 100;
+    var c = ep.contour / 100;
+    var e = ep.eyes / 100;
+    var v = ep.vibe / 100;
+    var brightness = 0.85 + b * 0.35;
+    var blur = Math.max(0, 0.15 - b * 0.12);
+    var contrast = 0.9 + c * 0.25;
+    var scale = 0.92 + e * 0.16;
+    var saturate = 0.7 + v * 0.6;
+    var sepia = v * 0.15;
+    var filter = 'brightness(' + brightness + ') contrast(' + contrast + ') blur(' + blur.toFixed(2) + 'px) saturate(' + saturate + ') sepia(' + sepia + ')';
+    var transform = 'scale(' + scale + ')';
+    return { filter: filter, transform: transform };
+  }
+
   function renderEdit() {
     var ep = state.editParams;
-    var filterStyle = 'filter: brightness(' + (0.85 + (ep.beauty / 100) * 0.25) + ') contrast(' + (0.95 + (ep.contour / 100) * 0.1) + ') blur(' + (0.1 - (ep.beauty / 100) * 0.08) + 'px);';
-    var transformStyle = 'transform: scale(' + (0.95 + (ep.eyes / 100) * 0.1) + ');';
+    var playerGender = state.playMode === 'female' ? 'male' : 'female';
+    var imgBase = 'images/player-' + playerGender;
+    var style = getEditImageStyle(ep);
     var sliders = [
       { key: 'beauty', label: '美肌' },
       { key: 'contour', label: '輪郭' },
@@ -264,8 +321,8 @@
         '<h2 class="edit-h2">加工フェーズ</h2>' +
         '<p class="edit-lead">相手の希望に合わせて、自分の見た目を調整しよう。</p>' +
         '<div class="edit-avatar">' +
-          '<div class="edit-avatarInner" style="' + filterStyle + ' ' + transformStyle + '">' +
-            '<span class="edit-avatarPlaceholder">あなた</span>' +
+          '<div class="edit-avatarInner">' +
+            '<img src="' + imgBase + '.png" alt="あなた" class="edit-playerImg" id="edit-playerImg" style="filter:' + style.filter + ';transform:' + style.transform + '">' +
           '</div>' +
         '</div>' +
         '<div class="edit-sliders" id="edit-sliders">' + sliders + '</div>' +
@@ -274,14 +331,22 @@
       true
     );
 
-    var avatarEl = root.querySelector('.edit-avatarInner');
+    var imgEl = document.getElementById('edit-playerImg');
+    imgEl.onerror = function () {
+      this.onerror = null;
+      this.src = imgBase + '.svg';
+    };
+    if (imgEl.complete && imgEl.naturalWidth === 0) imgEl.src = imgBase + '.svg';
+
     var updateSlider = function (key, value) {
       value = Math.max(0, Math.min(100, value));
       setEditParams({ [key]: value });
       var ep2 = state.editParams;
-      avatarEl.style.filter = 'brightness(' + (0.85 + (ep2.beauty / 100) * 0.25) + ') contrast(' + (0.95 + (ep2.contour / 100) * 0.1) + ') blur(' + (0.1 - (ep2.beauty / 100) * 0.08) + 'px)';
-      avatarEl.style.transform = 'scale(' + (0.95 + (ep2.eyes / 100) * 0.1) + ')';
-      root.querySelector('[data-value="' + key + '"]').textContent = value;
+      var s2 = getEditImageStyle(ep2);
+      imgEl.style.filter = s2.filter;
+      imgEl.style.transform = s2.transform;
+      var valEl = root.querySelector('[data-value="' + key + '"]');
+      if (valEl) valEl.textContent = value;
     };
     root.querySelectorAll('.edit-slider').forEach(function (input) {
       input.oninput = function () {
@@ -319,12 +384,16 @@
         '</div>';
     }
 
+    var partnerImgSrc = 'images/partner-' + (partner.gender === 'female' ? 'female' : 'male') + '-edited.png';
     renderLayout(
       '<div class="match-wrap">' +
         '<h2 class="match-h2">第1マッチング（加工写真）</h2>' +
         '<p class="match-lead">相手の写真をチェックして、OK か NG を選んでね。</p>' +
         '<div class="match-card">' +
-          '<div class="match-cardAvatar"><span class="match-avatarText">' + escapeHtml(partner.name) + ', ' + partner.age + '</span></div>' +
+          '<div class="match-cardAvatar">' +
+            '<img src="' + partnerImgSrc + '" alt="' + escapeHtml(partner.name) + '" class="match-partnerImg">' +
+          '</div>' +
+          '<p class="match-avatarText">' + escapeHtml(partner.name) + ', ' + partner.age + '</p>' +
           '<p class="match-cardDesc">相手の加工されたプロフィール写真です。</p>' +
           cardContent +
         '</div>' +
@@ -381,12 +450,18 @@
       dialogueHtml += '<button type="button" class="date-nextBtn" id="date-to-m2">第2マッチングへ</button>';
     }
 
+    var partnerFaceSrc = 'images/player-' + (partner.gender === 'female' ? 'female' : 'male') + '.png';
     renderLayout(
-      '<div class="date-wrap">' +
-        '<h2 class="date-h2">デート（アンヴェール）</h2>' +
-        '<p class="date-lead">素顔で会って、会話しよう。</p>' +
-        '<div class="date-partnerFace"><span class="date-faceLabel">' + escapeHtml(partner.name) + '（素顔）</span></div>' +
-        '<div class="date-dialogue" id="date-dialogue">' + dialogueHtml + '</div>' +
+      '<div class="date-bg">' +
+        '<div class="date-wrap">' +
+          '<h2 class="date-h2">デート（アンヴェール）</h2>' +
+          '<p class="date-lead">素顔で会って、会話しよう。</p>' +
+          '<div class="date-partnerFace">' +
+            '<img src="' + partnerFaceSrc + '" alt="' + escapeHtml(partner.name) + '（素顔）" class="date-partnerImg">' +
+          '</div>' +
+          '<p class="date-faceLabel">' + escapeHtml(partner.name) + '（素顔）</p>' +
+          '<div class="date-dialogue" id="date-dialogue">' + dialogueHtml + '</div>' +
+        '</div>' +
       '</div>',
       true
     );
@@ -432,12 +507,16 @@
         '</div>';
     }
 
+    var partnerFaceSrc = 'images/player-' + (partner.gender === 'female' ? 'female' : 'male') + '.png';
     renderLayout(
       '<div class="match-wrap">' +
         '<h2 class="match-h2">第2マッチング（素顔）</h2>' +
         '<p class="match-lead">素顔を知った上で、もう一度 OK / NG を選んでね。</p>' +
         '<div class="match-card">' +
-          '<div class="match-cardAvatar"><span class="match-avatarText">' + escapeHtml(partner.name) + ', ' + partner.age + '</span></div>' +
+          '<div class="match-cardAvatar">' +
+            '<img src="' + partnerFaceSrc + '" alt="' + escapeHtml(partner.name) + '" class="match-partnerImg">' +
+          '</div>' +
+          '<p class="match-avatarText">' + escapeHtml(partner.name) + ', ' + partner.age + '</p>' +
           '<p class="match-cardDesc">相手の素顔です。</p>' +
           cardContent +
         '</div>' +

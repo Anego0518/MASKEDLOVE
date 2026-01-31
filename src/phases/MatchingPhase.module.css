@@ -1,0 +1,118 @@
+.wrap {
+  max-width: 360px;
+  margin: 0 auto;
+}
+
+.h2 {
+  font-size: 1.35rem;
+  margin: 0 0 8px;
+  color: var(--color-text);
+}
+
+.lead {
+  font-size: 0.9rem;
+  color: var(--color-muted);
+  margin: 0 0 20px;
+}
+
+.card {
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.25);
+  border-radius: 16px;
+  border: 1px solid rgba(233, 30, 140, 0.2);
+  text-align: center;
+}
+
+.cardAvatar {
+  width: 140px;
+  height: 140px;
+  margin: 0 auto 16px;
+  border-radius: 50%;
+  background: linear-gradient(145deg, rgba(233, 30, 140, 0.35), rgba(173, 20, 87, 0.45));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 3px solid rgba(233, 30, 140, 0.4);
+}
+
+.avatarText {
+  font-size: 1rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.cardDesc {
+  font-size: 0.85rem;
+  color: var(--color-muted);
+  margin: 0 0 20px;
+}
+
+.buttons {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+}
+
+.ngBtn {
+  padding: 12px 28px;
+  font-size: 1rem;
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 999px;
+  color: var(--color-text);
+}
+
+.ngBtn:hover {
+  background: rgba(255, 100, 100, 0.2);
+  border-color: rgba(255, 100, 100, 0.5);
+}
+
+.okBtn {
+  padding: 12px 28px;
+  font-size: 1rem;
+  font-weight: 600;
+  background: linear-gradient(135deg, var(--color-masked), var(--color-love));
+  border: none;
+  border-radius: 999px;
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(233, 30, 140, 0.4);
+}
+
+.okBtn:hover {
+  opacity: 0.95;
+  transform: scale(1.05);
+}
+
+.result {
+  margin-top: 16px;
+}
+
+.matched {
+  color: var(--color-masked);
+  font-weight: 600;
+  margin: 0 0 12px;
+}
+
+.rejected {
+  color: var(--color-muted);
+  font-size: 0.9rem;
+  margin: 0 0 12px;
+}
+
+.nextBtn {
+  display: block;
+  width: 100%;
+  padding: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #fff;
+  background: linear-gradient(135deg, var(--color-masked), var(--color-love));
+  border: none;
+  border-radius: 12px;
+  margin-top: 8px;
+}
+
+.nextBtn:hover {
+  opacity: 0.95;
+}

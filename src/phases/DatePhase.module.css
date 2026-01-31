@@ -1,0 +1,100 @@
+.wrap {
+  max-width: 360px;
+  margin: 0 auto;
+}
+
+.h2 {
+  font-size: 1.35rem;
+  margin: 0 0 8px;
+  color: var(--color-text);
+}
+
+.lead {
+  font-size: 0.9rem;
+  color: var(--color-muted);
+  margin: 0 0 20px;
+}
+
+.partnerFace {
+  width: 100px;
+  height: 100px;
+  margin: 0 auto 20px;
+  border-radius: 50%;
+  background: linear-gradient(145deg, rgba(173, 20, 87, 0.4), rgba(233, 30, 140, 0.3));
+  border: 2px solid rgba(233, 30, 140, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.faceLabel {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+  text-align: center;
+  padding: 4px;
+}
+
+.dialogue {
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 12px;
+  min-height: 120px;
+}
+
+.text {
+  font-size: 1rem;
+  line-height: 1.6;
+  margin: 0 0 16px;
+  color: var(--color-text);
+}
+
+.choices {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.choiceBtn {
+  padding: 12px 16px;
+  font-size: 0.95rem;
+  text-align: left;
+  background: rgba(233, 30, 140, 0.2);
+  border: 1px solid rgba(233, 30, 140, 0.4);
+  border-radius: 10px;
+  color: var(--color-text);
+}
+
+.choiceBtn:hover {
+  background: rgba(233, 30, 140, 0.35);
+}
+
+.nextLineBtn {
+  padding: 10px 20px;
+  font-size: 0.9rem;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  color: var(--color-text);
+}
+
+.nextLineBtn:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.nextBtn {
+  display: block;
+  width: 100%;
+  padding: 14px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #fff;
+  background: linear-gradient(135deg, var(--color-masked), var(--color-love));
+  border: none;
+  border-radius: 12px;
+  margin-top: 8px;
+}
+
+.nextBtn:hover {
+  opacity: 0.95;
+}

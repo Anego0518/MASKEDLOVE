@@ -1,0 +1,68 @@
+.wrap {
+  max-width: 360px;
+  margin: 0 auto;
+  text-align: center;
+  padding: 24px 0;
+}
+
+.titleHappy {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: var(--color-masked);
+  margin: 0 0 24px;
+  text-shadow: 0 0 20px rgba(233, 30, 140, 0.5);
+}
+
+.titleBad {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: var(--color-muted);
+  margin: 0 0 24px;
+}
+
+.textWrap {
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 12px;
+  margin-bottom: 24px;
+}
+
+.text {
+  font-size: 1rem;
+  line-height: 1.8;
+  margin: 0;
+  color: var(--color-text);
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.retryBtn {
+  padding: 14px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #fff;
+  background: linear-gradient(135deg, var(--color-masked), var(--color-love));
+  border: none;
+  border-radius: 12px;
+}
+
+.retryBtn:hover {
+  opacity: 0.95;
+}
+
+.titleBtn {
+  padding: 12px;
+  font-size: 0.95rem;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  color: var(--color-text);
+}
+
+.titleBtn:hover {
+  background: rgba(255, 255, 255, 0.15);
+}

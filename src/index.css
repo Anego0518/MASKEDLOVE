@@ -1,0 +1,35 @@
+:root {
+  --color-masked: #e91e8c;
+  --color-love: #ad1457;
+  --color-bg: #1a0a12;
+  --color-surface: #2d1520;
+  --color-text: #fce4ec;
+  --color-muted: #b0a0a8;
+  --font-sans: 'Hiragino Sans', 'Yu Gothic UI', sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+#root {
+  min-height: 100vh;
+  max-width: 420px;
+  margin: 0 auto;
+  background: var(--color-surface);
+  box-shadow: 0 0 40px rgba(0,0,0,0.5);
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+}

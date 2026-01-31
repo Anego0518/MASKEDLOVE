@@ -178,8 +178,7 @@
   function renderTitle() {
     renderLayout(
       '<div class="title-wrap">' +
-        '<div class="title-maskIcon">❤</div>' +
-        '<h1 class="title-heading">MASKED <span class="title-love">LOVE</span></h1>' +
+        '<img src="images/Title logo.png" alt="MASKED LOVE" class="title-logo">' +
         '<p class="title-sub">［加工］が当たり前の時代、本当の愛はどこにある？</p>' +
         '<p class="title-desc">マッチングアプリで結婚相手を見つけ、Happy END を迎えよう。</p>' +
         '<button type="button" class="title-startBtn" id="btn-start">はじめる</button>' +

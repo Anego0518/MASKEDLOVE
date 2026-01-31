@@ -70,21 +70,13 @@ button { font-family: inherit; cursor: pointer; }
   text-align: center;
 }
 
-.title-maskIcon {
-  font-size: 3rem;
-  margin-bottom: 8px;
-  filter: drop-shadow(0 0 8px rgba(233, 30, 140, 0.6));
+.title-logo {
+  max-width: 100%;
+  width: min(320px, 85vw);
+  height: auto;
+  margin-bottom: 20px;
+  display: block;
 }
-
-.title-heading {
-  font-size: 2rem;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  margin: 0 0 8px;
-  color: var(--color-text);
-}
-
-.title-love { color: var(--color-masked); }
 
 .title-sub {
   font-size: 0.95rem;

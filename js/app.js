@@ -71,7 +71,7 @@
     },
   };
 
-  var defaultEditParams = { beauty: 50, contour: 50, eyes: 50, vibe: 50 };
+  var defaultEditParams = { beautyLevel: 1, editLevel: 1, effectLevel: 1, characterIndex: 1 };
 
   // --- STORE ---
   var state = {
@@ -149,7 +149,8 @@
       return playerConditionIds.indexOf(id) !== -1;
     }).length;
     var conditionScore = matchCount / Math.max(1, char.desiredConditionIds.length);
-    var editScore = (editParams.beauty + editParams.contour + editParams.eyes + editParams.vibe) / 400;
+    var sum = (editParams.beautyLevel || 1) + (editParams.editLevel || 1) + (editParams.effectLevel || 1);
+    var editScore = Math.min(1, sum / 12);
     var total = conditionScore * 0.5 + editScore * 0.5;
     return Math.random() < total + 0.2;
   }
@@ -280,77 +281,99 @@
     };
   }
 
-  function getEditImageStyle(ep) {
-    var b = ep.beauty / 100;
-    var c = ep.contour / 100;
-    var e = ep.eyes / 100;
-    var v = ep.vibe / 100;
-    var brightness = 0.85 + b * 0.35;
-    var blur = Math.max(0, 0.15 - b * 0.12);
-    var contrast = 0.9 + c * 0.25;
-    var scale = 0.92 + e * 0.16;
-    var saturate = 0.7 + v * 0.6;
-    var sepia = v * 0.15;
-    var filter = 'brightness(' + brightness + ') contrast(' + contrast + ') blur(' + blur.toFixed(2) + 'px) saturate(' + saturate + ') sepia(' + sepia + ')';
-    var transform = 'scale(' + scale + ')';
-    return { filter: filter, transform: transform };
+  function getEditBrightness(beautyLevel) {
+    var l = Math.max(1, Math.min(4, beautyLevel || 1));
+    return 0.9 + (l - 1) * 0.1;
   }
 
   function renderEdit() {
     var ep = state.editParams;
+    var beautyLevel = ep.beautyLevel || 1;
+    var editLevel = ep.editLevel || 1;
+    var effectLevel = ep.effectLevel || 1;
+    var charNum = ep.characterIndex || 1;
     var playerGender = state.playMode === 'female' ? 'male' : 'female';
-    var imgBase = 'images/player-' + playerGender;
-    var style = getEditImageStyle(ep);
-    var sliders = [
-      { key: 'beauty', label: '美肌' },
-      { key: 'contour', label: '輪郭' },
-      { key: 'eyes', label: '目の大きさ' },
-      { key: 'vibe', label: '雰囲気' },
-    ].map(function (s) {
-      return (
-        '<label class="edit-sliderRow">' +
-          '<span class="edit-sliderLabel">' + escapeHtml(s.label) + '</span>' +
-          '<input type="range" class="edit-slider" min="0" max="100" value="' + ep[s.key] + '" data-key="' + s.key + '">' +
-          '<span class="edit-sliderValue" data-value="' + s.key + '">' + ep[s.key] + '</span>' +
-        '</label>'
-      );
-    }).join('');
+    var imgPath = 'images/player-' + playerGender + '-' + charNum + '-' + editLevel + '.png';
+    var imgFallbackChar1 = 'images/player-' + playerGender + '-1-' + editLevel + '.png';
+    var imgFallback = 'images/player-' + playerGender + '.png';
+    var brightness = getEditBrightness(beautyLevel);
+    var effectClass = effectLevel >= 2 ? ' edit-effect-' + effectLevel : '';
+
+    function levelButtons(key, label, maxLevel) {
+      maxLevel = maxLevel || 4;
+      var current = ep[key] || 1;
+      var html = '<div class="edit-levelRow">' +
+        '<span class="edit-levelLabel">' + escapeHtml(label) + '</span>' +
+        '<div class="edit-levelBtns">';
+      for (var i = 1; i <= maxLevel; i++) {
+        var cls = 'edit-levelBtn' + (current === i ? ' selected' : '');
+        html += '<button type="button" class="' + cls + '" data-key="' + key + '" data-level="' + i + '">' + i + '</button>';
+      }
+      html += '</div></div>';
+      return html;
+    }
+
+    var levelRows = levelButtons('characterIndex', 'キャラ', 3) + levelButtons('beautyLevel', '美肌') + levelButtons('editLevel', '加工') + levelButtons('effectLevel', 'エフェクト');
 
     renderLayout(
       '<div class="edit-wrap">' +
         '<h2 class="edit-h2">加工フェーズ</h2>' +
         '<p class="edit-lead">相手の希望に合わせて、自分の見た目を調整しよう。</p>' +
         '<div class="edit-avatar">' +
-          '<div class="edit-avatarInner">' +
-            '<img src="' + imgBase + '.png" alt="あなた" class="edit-playerImg" id="edit-playerImg" style="filter:' + style.filter + ';transform:' + style.transform + '">' +
+          '<div class="edit-avatarInner' + effectClass + '">' +
+            '<img src="' + imgPath + '" alt="あなた" class="edit-playerImg" id="edit-playerImg" style="filter:brightness(' + brightness + ')">' +
           '</div>' +
         '</div>' +
-        '<div class="edit-sliders" id="edit-sliders">' + sliders + '</div>' +
+        '<div class="edit-levels" id="edit-levels">' + levelRows + '</div>' +
         '<button type="button" class="edit-nextBtn" id="btn-edit-next">第1マッチングへ</button>' +
       '</div>',
       true
     );
 
     var imgEl = document.getElementById('edit-playerImg');
+    var avatarInner = root.querySelector('.edit-avatarInner');
     imgEl.onerror = function () {
-      this.onerror = null;
-      this.src = imgBase + '.svg';
+      var s = this.src;
+      if ((s.indexOf('-2-') !== -1 || s.indexOf('-3-') !== -1)) {
+        this.src = s.replace(/-[23]-/, '-1-');
+      } else {
+        this.onerror = null;
+        this.src = imgFallback;
+      }
     };
-    if (imgEl.complete && imgEl.naturalWidth === 0) imgEl.src = imgBase + '.svg';
+    if (imgEl.complete && imgEl.naturalWidth === 0) imgEl.src = imgFallback;
 
-    var updateSlider = function (key, value) {
-      value = Math.max(0, Math.min(100, value));
-      setEditParams({ [key]: value });
+    function updateLevel(key, level) {
+      setEditParams({ [key]: level });
       var ep2 = state.editParams;
-      var s2 = getEditImageStyle(ep2);
-      imgEl.style.filter = s2.filter;
-      imgEl.style.transform = s2.transform;
-      var valEl = root.querySelector('[data-value="' + key + '"]');
-      if (valEl) valEl.textContent = value;
-    };
-    root.querySelectorAll('.edit-slider').forEach(function (input) {
-      input.oninput = function () {
-        updateSlider(input.getAttribute('data-key'), Number(input.value));
+      var charNum2 = ep2.characterIndex || 1;
+      if (key === 'characterIndex' || key === 'editLevel') {
+        imgEl.onerror = function () {
+          var s = this.src;
+          if (s.indexOf('-2-') !== -1 || s.indexOf('-3-') !== -1) {
+            this.src = s.replace(/-[23]-/, '-1-');
+          } else {
+            this.onerror = null;
+            this.src = 'images/player-' + playerGender + '.png';
+          }
+        };
+        imgEl.src = 'images/player-' + playerGender + '-' + charNum2 + '-' + (ep2.editLevel || 1) + '.png';
+      }
+      if (key === 'beautyLevel') {
+        imgEl.style.filter = 'brightness(' + getEditBrightness(ep2.beautyLevel) + ')';
+      }
+      if (key === 'effectLevel') {
+        avatarInner.classList.remove('edit-effect-2', 'edit-effect-3', 'edit-effect-4');
+        if ((ep2.effectLevel || 1) >= 2) avatarInner.classList.add('edit-effect-' + (ep2.effectLevel || 1));
+      }
+      root.querySelectorAll('.edit-levelBtn[data-key="' + key + '"]').forEach(function (btn) {
+        btn.classList.toggle('selected', parseInt(btn.getAttribute('data-level'), 10) === (ep2[key] || 1));
+      });
+    }
+
+    root.querySelectorAll('.edit-levelBtn').forEach(function (btn) {
+      btn.onclick = function () {
+        updateLevel(btn.getAttribute('data-key'), parseInt(btn.getAttribute('data-level'), 10));
       };
     });
     document.getElementById('btn-edit-next').onclick = function () { navigateTo('matching1'); };

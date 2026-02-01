@@ -26,7 +26,7 @@
     { id: 'high_income', label: '高収入' },
     { id: 'high_education', label: '高学歴' },
   ];
-  // 対応表: キャラパターン(1～3)ごとの項目ID。同数時は 1 → 2 → 3 の順で優先
+  // 対応表: キャラパターン(1～3)ごとの項目ID。[優先1, 優先2, 優先3] の順。優先1=3点、優先2=2点、優先3=1点で重み付け
   var CHARACTER_TRAITS = {
     female: {
       1: ['gentle_f', 'domestic', 'smile_f'],
@@ -39,50 +39,19 @@
       3: ['cool_m', 'high_income', 'high_education'],
     },
   };
+  var TRAIT_WEIGHTS = [3, 2, 1];
+
+  var DATE_QUESTION = '写真と別人だけど、もしかして自分に自信が無いの？';
+  var DATE_CHOICES = [
+    { text: 'いやいや･･･君だって人のこと言えないじゃないか。', textMale: 'いやいや･･･あなただって人のこと言えないよね。', response: '中身も最低ね。', m2Success: false },
+    { text: '中身には自信あるよ！今日は一緒に楽しもうね。', response: 'それは楽しみね。', responseMale: 'それは楽しみだな。', m2Success: true },
+    { text: '実はそうなんだ。嘘ついてごめんね。', textMale: '実はそうなの･･･。嘘ついてごめんね。', response: '実は私もなの･･･一緒だったのね。', responseMale: '実は僕もなんだ･･･一緒だね。', m2Success: true },
+    { text: 'そう？今日はちょっと調子が悪いんだよね。', response: '･･･だいぶね。', m2Success: false },
+  ];
 
   var CHARACTERS = [
-    {
-      id: 'anna',
-      gender: 'female',
-      name: 'アンナ',
-      age: 28,
-      desiredConditionIds: ['cute', 'gentle', 'warm'],
-      dateLines: [
-        { text: '初めまして。写真より…いい意味で緊張してる。', nextIndex: 1 },
-        {
-          text: 'どんな人に惹かれる？',
-          choices: [
-            { text: '笑顔が素敵な人', nextIndex: 2, affinityKey: 'smile' },
-            { text: '話を聞いてくれる人', nextIndex: 2, affinityKey: 'listen' },
-            { text: '一緒にいて楽な人', nextIndex: 2, affinityKey: 'easy' },
-          ],
-        },
-        { text: 'そうだね、それ大事だよね。私もそう思う。', nextIndex: 3 },
-        { text: '今日は会えてよかった。また話そう。', nextIndex: -1 },
-      ],
-      compatibilityWeights: { smile: 1, listen: 1.2, easy: 0.8 },
-    },
-    {
-      id: 'akira',
-      gender: 'male',
-      name: 'アキラ',
-      age: 28,
-      desiredConditionIds: ['natural', 'calm', 'warm'],
-      dateLines: [
-        { text: '初めまして。写真とちょっと違う？まあ、いい意味で。', nextIndex: 1 },
-        {
-          text: 'どんな人に惹かれる？',
-          choices: [
-            { text: '笑顔が素敵な人', nextIndex: 2, affinityKey: 'smile' },
-            { text: '話を聞いてくれる人', nextIndex: 2, affinityKey: 'listen' },
-            { text: '一緒にいて楽な人', nextIndex: 2, affinityKey: 'easy' },
-          ],
-        },
-        { text: 'そうだね、それ大事だよね。僕もそう思う。', nextIndex: 3 },
-        { text: '今日は会えてよかった。また話そう。', nextIndex: -1 },
-      ],
-      compatibilityWeights: { smile: 1.2, listen: 1, easy: 0.8 },
-    },
+    { id: 'anna', gender: 'female', name: 'アンナ', age: 28 },
+    { id: 'akira', gender: 'male', name: 'アキラ', age: 28 },
   ];
 
   var ENDINGS = {
@@ -107,11 +76,12 @@
     partnerId: null,
     playerConditionIds: [],
     editParams: Object.assign({}, defaultEditParams),
-    partnerImagePattern: null, // 1～3。今はランダム。後で条件指定フェーズの選択で決定する
+    partnerImagePattern: null,
     playerChoiceMatching1: null,
     partnerOkMatching1: null,
-    dateLineIndex: 0,
-    dateAffinityKeys: [],
+    dateStep: 0,
+    dateChoiceIndex: null,
+    dateChoiceM2Success: null,
     playerChoiceMatching2: null,
     partnerOkMatching2: null,
     endingType: null,
@@ -133,9 +103,9 @@
     state.playerChoiceMatching1 = player;
     state.partnerOkMatching1 = partner;
   }
-  function advanceDate(nextIndex, affinityKey) {
-    state.dateLineIndex = nextIndex;
-    if (affinityKey) state.dateAffinityKeys.push(affinityKey);
+  function setDateChoice(choiceIndex, m2Success) {
+    state.dateChoiceIndex = choiceIndex;
+    state.dateChoiceM2Success = m2Success;
   }
   function setMatching2(player, partner) {
     state.playerChoiceMatching2 = player;
@@ -150,8 +120,9 @@
     state._dateImageShown = undefined;
     state.playerChoiceMatching1 = null;
     state.partnerOkMatching1 = null;
-    state.dateLineIndex = 0;
-    state.dateAffinityKeys = [];
+    state.dateStep = 0;
+    state.dateChoiceIndex = null;
+    state.dateChoiceM2Success = null;
     state.playerChoiceMatching2 = null;
     state.partnerOkMatching2 = null;
     state.endingType = null;
@@ -166,37 +137,30 @@
     state._dateImageShown = undefined;
     state.playerChoiceMatching1 = null;
     state.partnerOkMatching1 = null;
-    state.dateLineIndex = 0;
-    state.dateAffinityKeys = [];
+    state.dateStep = 0;
+    state.dateChoiceIndex = null;
+    state.dateChoiceM2Success = null;
     state.playerChoiceMatching2 = null;
     state.partnerOkMatching2 = null;
     state.endingType = null;
   }
 
   // --- MATCHING ---
+  // 第1マッチング: 成功=加工3or4、または加工2かつ(美肌orエフェクトが3以上)。失敗=加工1、または加工2かつ(美肌もエフェクトも2以下)
   function computePartnerOkMatching1(partnerId, playerConditionIds, editParams) {
-    var char = CHARACTERS.find(function (c) { return c.id === partnerId; });
-    if (!char) return false;
-    var matchCount = char.desiredConditionIds.filter(function (id) {
-      return playerConditionIds.indexOf(id) !== -1;
-    }).length;
-    var conditionScore = matchCount / Math.max(1, char.desiredConditionIds.length);
-    var sum = (editParams.beautyLevel || 1) + (editParams.editLevel || 1) + (editParams.effectLevel || 1);
-    var editScore = Math.min(1, sum / 12);
-    var total = conditionScore * 0.5 + editScore * 0.5;
-    return Math.random() < total + 0.2;
+    var editLevel = editParams.editLevel || 1;
+    var beautyLevel = editParams.beautyLevel || 1;
+    var effectLevel = editParams.effectLevel || 1;
+    if (editLevel === 1) return false;
+    if (editLevel === 3 || editLevel === 4) return true;
+    if (editLevel === 2) {
+      return beautyLevel >= 3 || effectLevel >= 3;
+    }
+    return false;
   }
 
-  function computePartnerOkMatching2(partnerId, dateAffinityKeys) {
-    var char = CHARACTERS.find(function (c) { return c.id === partnerId; });
-    if (!char) return false;
-    var affinity = 0.5;
-    for (var i = 0; i < dateAffinityKeys.length; i++) {
-      var key = dateAffinityKeys[i];
-      var w = char.compatibilityWeights[key];
-      if (w) affinity += (w - 1) * 0.15;
-    }
-    return Math.random() < Math.min(0.95, Math.max(0.1, affinity));
+  function computePartnerOkMatching2(partnerId, dateChoiceM2Success) {
+    return dateChoiceM2Success === true;
   }
 
   // --- ROUTING (hash) ---
@@ -265,16 +229,18 @@
     };
   }
 
-  // 選択された条件から、対応表に基づき最もあてはまるキャラパターン(1～3)を返す。同数時は1→2→3の順で優先
+  // 選択された条件から、対応表に基づき最もあてはまるキャラパターン(1～3)を返す。優先1=3点、優先2=2点、優先3=1点で重み付け。同点時は1→2→3の順で優先
   function getPartnerImagePatternFromConditions() {
     var selected = state.playerConditionIds || [];
-    var partnerGender = state.playMode; // 女性とマッチング→相手は女性、男性とマッチング→相手は男性
+    var partnerGender = state.playMode;
     var traits = CHARACTER_TRAITS[partnerGender];
     if (!traits) return 1 + Math.floor(Math.random() * 3);
     var scores = { 1: 0, 2: 0, 3: 0 };
     for (var p = 1; p <= 3; p++) {
-      for (var i = 0; i < selected.length; i++) {
-        if (traits[p].indexOf(selected[i]) !== -1) scores[p]++;
+      var charTraits = traits[p];
+      for (var s = 0; s < selected.length; s++) {
+        var idx = charTraits.indexOf(selected[s]);
+        if (idx !== -1) scores[p] += TRAIT_WEIGHTS[idx];
       }
     }
     var best = 1;
@@ -462,8 +428,8 @@
     var partnerGender = partner.gender === 'female' ? 'female' : 'male';
     var partnerPattern = getPartnerImagePattern();
     var partnerEditLevel = 4;
-    var partnerImgSrc = 'images/partner-' + partnerGender + '-' + partnerPattern + '-' + partnerEditLevel + '.png';
-    var partnerImgFallback = 'images/partner-' + partnerGender + '-edited.png';
+    var partnerImgSrc = 'images/player-' + partnerGender + '-' + partnerPattern + '-' + partnerEditLevel + '.png';
+    var partnerImgFallback = 'images/player-' + partnerGender + '.png';
     renderLayout(
       '<div class="match-wrap">' +
         '<h2 class="match-h2">第1マッチング（加工写真）</h2>' +
@@ -502,8 +468,12 @@
       document.getElementById('m1-next').onclick = function () {
         delete state._m1Choice;
         delete state._m1Result;
-        if (result === 'matched') navigateTo('date');
-        else navigateTo('condition');
+        if (result === 'matched') {
+          state.dateStep = 0;
+          navigateTo('date');
+        } else {
+          navigateTo('condition');
+        }
       };
     }
   }
@@ -514,27 +484,28 @@
       navigateTo('title');
       return;
     }
-    var lines = partner.dateLines;
-    var current = lines[state.dateLineIndex];
-    var isLastLine = current && current.nextIndex === -1;
-
+    var isFemale = partner.gender === 'female';
     var dialogueHtml = '';
-    if (current) {
-      dialogueHtml += '<p class="date-text">' + escapeHtml(current.text) + '</p>';
-      if (current.choices && current.choices.length > 0) {
-        dialogueHtml += '<div class="date-choices">';
-        current.choices.forEach(function (c, i) {
-          dialogueHtml += '<button type="button" class="date-choiceBtn" data-ni="' + c.nextIndex + '" data-ak="' + (c.affinityKey || '') + '">' + escapeHtml(c.text) + '</button>';
-        });
-        dialogueHtml += '</div>';
-      } else if (current.nextIndex !== undefined && current.nextIndex >= 0) {
-        dialogueHtml += '<button type="button" class="date-nextLineBtn" data-ni="' + current.nextIndex + '">次へ</button>';
-      } else if (isLastLine) {
-        dialogueHtml += '<button type="button" class="date-nextBtn" id="date-to-m2">第2マッチングへ</button>';
-      }
-    } else {
-      dialogueHtml += '<p class="date-text">デートが終わった。第2マッチングで決めよう。</p>';
+
+    if (state.dateChoiceIndex !== null && state.dateChoiceIndex !== undefined) {
+      var chosen = DATE_CHOICES[state.dateChoiceIndex];
+      var resp = isFemale ? chosen.response : (chosen.responseMale || chosen.response);
+      dialogueHtml += '<p class="date-text">' + escapeHtml(resp) + '</p>';
       dialogueHtml += '<button type="button" class="date-nextBtn" id="date-to-m2">第2マッチングへ</button>';
+    } else if (state.dateStep === 0) {
+      dialogueHtml += '<p class="date-text">（あれ・・・なんか写真と違う・・・？）</p>';
+      dialogueHtml += '<div class="date-introBtns">';
+      dialogueHtml += '<button type="button" class="date-nextBtn" id="date-intro-next">次へ</button>';
+      dialogueHtml += '<button type="button" class="date-backBtn" id="date-intro-back">帰る</button>';
+      dialogueHtml += '</div>';
+    } else {
+      dialogueHtml += '<p class="date-text">' + escapeHtml(DATE_QUESTION) + '</p>';
+      dialogueHtml += '<div class="date-choices">';
+      DATE_CHOICES.forEach(function (c, i) {
+        var label = isFemale ? c.text : (c.textMale || c.text);
+        dialogueHtml += '<button type="button" class="date-choiceBtn" data-choice="' + i + '">' + escapeHtml(label) + '</button>';
+      });
+      dialogueHtml += '</div>';
     }
 
     var partnerGender = partner.gender === 'female' ? 'female' : 'male';
@@ -548,7 +519,7 @@
         '<div class="date-bgTop">' +
           '<div class="' + overlayClasses + '" id="date-partnerOverlay">' +
             '<div class="date-partnerFace">' +
-              '<img src="' + partnerFaceSrc + '" alt="' + escapeHtml(partner.name) + '（素顔）" class="date-partnerImg" id="date-partnerImg" data-fallback="' + partnerFaceFallback + '" data-fallback2="images/partner-' + partnerGender + '-' + partnerPattern + '.png">' +
+              '<img src="' + partnerFaceSrc + '" alt="' + escapeHtml(partner.name) + '（素顔）" class="date-partnerImg" id="date-partnerImg" data-fallback="' + partnerFaceFallback + '" data-fallback2="images/player-' + partnerGender + '-' + partnerPattern + '-1.png">' +
             '</div>' +
           '</div>' +
         '</div>' +
@@ -580,7 +551,8 @@
       dateImg.onerror = function () {
         var fallback = this.getAttribute('data-fallback');
         var fallback2 = this.getAttribute('data-fallback2');
-        if (fallback2 && this.src && this.src.indexOf('partner-') !== -1) {
+        var triedGeneric = this.src && (this.src.indexOf('player-female.png') !== -1 || this.src.indexOf('player-male.png') !== -1) && this.src.indexOf('-1.png') === -1;
+        if (fallback2 && triedGeneric) {
           this.onerror = null;
           this.src = fallback2;
         } else if (fallback) {
@@ -591,12 +563,14 @@
     }
 
     root.querySelector('#date-dialogue').addEventListener('click', function (e) {
-      var btn = e.target.closest('[data-ni]');
+      var btn = e.target.closest('[data-choice]');
       if (btn) {
-        var ni = parseInt(btn.getAttribute('data-ni'), 10);
-        var ak = btn.getAttribute('data-ak') || undefined;
-        advanceDate(ni, ak);
-        renderDate();
+        var idx = parseInt(btn.getAttribute('data-choice'), 10);
+        var c = DATE_CHOICES[idx];
+        if (c) {
+          setDateChoice(idx, c.m2Success);
+          renderDate();
+        }
       }
     });
     var toM2 = document.getElementById('date-to-m2');
@@ -634,7 +608,7 @@
 
     var partnerGender = partner.gender === 'female' ? 'female' : 'male';
     var partnerPattern = state.partnerImagePattern != null ? state.partnerImagePattern : 1;
-    var partnerFaceSrc = 'images/partner-' + partnerGender + '-' + partnerPattern + '-1.png';
+    var partnerFaceSrc = 'images/player-' + partnerGender + '-' + partnerPattern + '-1.png';
     var partnerFaceFallback = 'images/player-' + partnerGender + '.png';
     renderLayout(
       '<div class="match-wrap">' +
@@ -662,7 +636,7 @@
 
     if (playerChoice === undefined) {
       function decide(ok) {
-        var partnerOk = computePartnerOkMatching2(state.partnerId, state.dateAffinityKeys);
+        var partnerOk = computePartnerOkMatching2(state.partnerId, state.dateChoiceM2Success);
         setMatching2(ok, partnerOk);
         setEnding(ok && partnerOk ? 'happy' : 'bad');
         state._m2Choice = ok;

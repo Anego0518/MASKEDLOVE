@@ -80,6 +80,7 @@
     partnerId: null,
     playerConditionIds: [],
     editParams: Object.assign({}, defaultEditParams),
+    partnerImagePattern: null, // 1～3。今はランダム。後で条件指定フェーズの選択で決定する
     playerChoiceMatching1: null,
     partnerOkMatching1: null,
     dateLineIndex: 0,
@@ -118,6 +119,7 @@
     state.phase = 'condition';
     state.playerConditionIds = [];
     state.editParams = Object.assign({}, defaultEditParams);
+    state.partnerImagePattern = null;
     state.playerChoiceMatching1 = null;
     state.partnerOkMatching1 = null;
     state.dateLineIndex = 0;
@@ -132,6 +134,7 @@
     state.partnerId = null;
     state.playerConditionIds = [];
     state.editParams = Object.assign({}, defaultEditParams);
+    state.partnerImagePattern = null;
     state.playerChoiceMatching1 = null;
     state.partnerOkMatching1 = null;
     state.dateLineIndex = 0;
@@ -379,6 +382,14 @@
     document.getElementById('btn-edit-next').onclick = function () { navigateTo('matching1'); };
   }
 
+  // 相手画像のパターン（1～3）。今はランダム。後で state.playerConditionIds 等で決定する
+  function getPartnerImagePattern() {
+    if (state.partnerImagePattern == null) {
+      state.partnerImagePattern = 1 + Math.floor(Math.random() * 3);
+    }
+    return state.partnerImagePattern;
+  }
+
   function renderMatching1() {
     var partner = CHARACTERS.find(function (c) { return c.id === state.partnerId; });
     if (!partner) {
@@ -392,8 +403,9 @@
     if (playerChoice === undefined) {
       cardContent =
         '<div class="match-buttons">' +
-          '<button type="button" class="match-ngBtn" id="m1-ng">✕ NG</button>' +
-          '<button type="button" class="match-okBtn" id="m1-ok">♡ OK</button>' +
+          '<button type="button" class="match-ngBtn" id="m1-ng" aria-label="NG"><span class="match-btnIcon">✕</span></button>' +
+          '<span class="match-buttonsDivider"></span>' +
+          '<button type="button" class="match-okBtn" id="m1-ok" aria-label="OK"><span class="match-btnIcon">♥</span></button>' +
         '</div>';
     } else {
       var msg = result === 'matched'
@@ -407,14 +419,19 @@
         '</div>';
     }
 
-    var partnerImgSrc = 'images/partner-' + (partner.gender === 'female' ? 'female' : 'male') + '-edited.png';
+    var playerEditLevel = state.editParams.editLevel || 1;
+    var partnerEditLevel = Math.min(4, playerEditLevel + 1);
+    var partnerGender = partner.gender === 'female' ? 'female' : 'male';
+    var partnerPattern = getPartnerImagePattern();
+    var partnerImgSrc = 'images/partner-' + partnerGender + '-' + partnerPattern + '-' + partnerEditLevel + '.png';
+    var partnerImgFallback = 'images/partner-' + partnerGender + '-edited.png';
     renderLayout(
       '<div class="match-wrap">' +
         '<h2 class="match-h2">第1マッチング（加工写真）</h2>' +
         '<p class="match-lead">相手の写真をチェックして、OK か NG を選んでね。</p>' +
         '<div class="match-card">' +
-          '<div class="match-cardAvatar">' +
-            '<img src="' + partnerImgSrc + '" alt="' + escapeHtml(partner.name) + '" class="match-partnerImg">' +
+          '<div class="match-cardImage">' +
+            '<img src="' + partnerImgSrc + '" alt="' + escapeHtml(partner.name) + '" class="match-partnerImg" id="m1-partnerImg" data-fallback="' + partnerImgFallback + '">' +
           '</div>' +
           '<p class="match-avatarText">' + escapeHtml(partner.name) + ', ' + partner.age + '</p>' +
           '<p class="match-cardDesc">相手の加工されたプロフィール写真です。</p>' +
@@ -423,6 +440,14 @@
       '</div>',
       true
     );
+
+    var m1Img = document.getElementById('m1-partnerImg');
+    if (m1Img) {
+      m1Img.onerror = function () {
+        var fallback = this.getAttribute('data-fallback');
+        if (fallback) { this.onerror = null; this.src = fallback; }
+      };
+    }
 
     if (playerChoice === undefined) {
       function decide(ok) {
@@ -473,14 +498,17 @@
       dialogueHtml += '<button type="button" class="date-nextBtn" id="date-to-m2">第2マッチングへ</button>';
     }
 
-    var partnerFaceSrc = 'images/player-' + (partner.gender === 'female' ? 'female' : 'male') + '.png';
+    var partnerGender = partner.gender === 'female' ? 'female' : 'male';
+    var partnerPattern = state.partnerImagePattern != null ? state.partnerImagePattern : 1;
+    var partnerFaceSrc = 'images/partner-' + partnerGender + '-' + partnerPattern + '.png';
+    var partnerFaceFallback = 'images/player-' + partnerGender + '.png';
     renderLayout(
       '<div class="date-bg">' +
         '<div class="date-wrap">' +
           '<h2 class="date-h2">デート（アンヴェール）</h2>' +
           '<p class="date-lead">素顔で会って、会話しよう。</p>' +
           '<div class="date-partnerFace">' +
-            '<img src="' + partnerFaceSrc + '" alt="' + escapeHtml(partner.name) + '（素顔）" class="date-partnerImg">' +
+            '<img src="' + partnerFaceSrc + '" alt="' + escapeHtml(partner.name) + '（素顔）" class="date-partnerImg" id="date-partnerImg" data-fallback="' + partnerFaceFallback + '">' +
           '</div>' +
           '<p class="date-faceLabel">' + escapeHtml(partner.name) + '（素顔）</p>' +
           '<div class="date-dialogue" id="date-dialogue">' + dialogueHtml + '</div>' +
@@ -488,6 +516,14 @@
       '</div>',
       true
     );
+
+    var dateImg = document.getElementById('date-partnerImg');
+    if (dateImg) {
+      dateImg.onerror = function () {
+        var fallback = this.getAttribute('data-fallback');
+        if (fallback) { this.onerror = null; this.src = fallback; }
+      };
+    }
 
     root.querySelector('#date-dialogue').addEventListener('click', function (e) {
       var btn = e.target.closest('[data-ni]');
@@ -515,8 +551,9 @@
     if (playerChoice === undefined) {
       cardContent =
         '<div class="match-buttons">' +
-          '<button type="button" class="match-ngBtn" id="m2-ng">✕ NG</button>' +
-          '<button type="button" class="match-okBtn" id="m2-ok">♡ OK</button>' +
+          '<button type="button" class="match-ngBtn" id="m2-ng" aria-label="NG"><span class="match-btnIcon">✕</span></button>' +
+          '<span class="match-buttonsDivider"></span>' +
+          '<button type="button" class="match-okBtn" id="m2-ok" aria-label="OK"><span class="match-btnIcon">♥</span></button>' +
         '</div>';
     } else {
       var msg = result === 'matched'
@@ -536,7 +573,7 @@
         '<h2 class="match-h2">第2マッチング（素顔）</h2>' +
         '<p class="match-lead">素顔を知った上で、もう一度 OK / NG を選んでね。</p>' +
         '<div class="match-card">' +
-          '<div class="match-cardAvatar">' +
+          '<div class="match-cardImage">' +
             '<img src="' + partnerFaceSrc + '" alt="' + escapeHtml(partner.name) + '" class="match-partnerImg">' +
           '</div>' +
           '<p class="match-avatarText">' + escapeHtml(partner.name) + ', ' + partner.age + '</p>' +

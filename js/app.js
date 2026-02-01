@@ -41,7 +41,7 @@
   };
   var TRAIT_WEIGHTS = [3, 2, 1];
 
-  var DATE_QUESTION = '写真と別人だけど、もしかして自分に自信が無いの？';
+  var DATE_QUESTION = '相手「写真と別人だけど、もしかして自分に自信が無いの？」';
   var DATE_CHOICES = [
     { text: 'いやいや･･･君だって人のこと言えないじゃないか。', textMale: 'いやいや･･･あなただって人のこと言えないよね。', response: '中身も最低ね。', m2Success: false },
     { text: '中身には自信あるよ！今日は一緒に楽しもうね。', response: 'それは楽しみね。', responseMale: 'それは楽しみだな。', m2Success: true },
@@ -260,10 +260,10 @@
 
     renderLayout(
       '<div class="condition-wrap">' +
-        '<h2 class="condition-h2">条件設定</h2>' +
+        '<h2 class="condition-h2">あなたの好みのタイプは？</h2>' +
         '<p class="condition-lead">相手に求める条件を選んでね（複数可）</p>' +
         '<div class="condition-tagList" id="condition-tags">' + tagButtons + '</div>' +
-        '<button type="button" class="condition-nextBtn" id="btn-condition-next">加工フェーズへ</button>' +
+        '<button type="button" class="condition-nextBtn" id="btn-condition-next">自分の写真を登録しよう</button>' +
       '</div>',
       true
     );
@@ -323,8 +323,8 @@
 
     renderLayout(
       '<div class="edit-wrap">' +
-        '<h2 class="edit-h2">加工フェーズ</h2>' +
-        '<p class="edit-lead">相手の希望に合わせて、自分の見た目を調整しよう。</p>' +
+        '<h2 class="edit-h2">加工しちゃう？</h2>' +
+        '<p class="edit-lead">マッチングしやすいように、写真を調整できるよ。</p>' +
         '<div class="edit-avatar">' +
           '<div class="edit-avatarInner' + effectClass + '">' +
             '<img src="' + imgPath + '" alt="あなた" class="edit-playerImg" id="edit-playerImg" style="filter:brightness(' + brightness + ')">' +
@@ -571,6 +571,17 @@
           setDateChoice(idx, c.m2Success);
           renderDate();
         }
+        return;
+      }
+      var introNext = e.target.closest('#date-intro-next');
+      if (introNext) {
+        state.dateStep = 1;
+        renderDate();
+        return;
+      }
+      var introBack = e.target.closest('#date-intro-back');
+      if (introBack) {
+        navigateTo('condition');
       }
     });
     var toM2 = document.getElementById('date-to-m2');
@@ -662,8 +673,10 @@
       return escapeHtml(line) + '<br>';
     }).join('');
 
+    var endingImgHtml = isHappy ? '<div class="ending-imgWrap"><img src="images/ending.png" alt="" class="ending-img"></div>' : '';
     renderLayout(
       '<div class="ending-wrap">' +
+        endingImgHtml +
         '<h2 class="' + titleClass + '">' + (ending && ending.title ? escapeHtml(ending.title) : 'BAD END') + '</h2>' +
         '<div class="ending-textWrap"><p class="ending-text">' + textLines + '</p></div>' +
         '<div class="ending-actions">' +

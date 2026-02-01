@@ -72,9 +72,9 @@ button { font-family: inherit; cursor: pointer; }
 
 .title-logo {
   max-width: 100%;
-  width: min(320px, 85vw);
+  width: min(520px, 98vw);
   height: auto;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
   display: block;
 }
 
@@ -518,6 +518,28 @@ button { font-family: inherit; cursor: pointer; }
 
 .date-text { font-size: 1rem; line-height: 1.6; margin: 0 0 16px; color: var(--color-text); }
 
+.date-introBtns {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.date-backBtn {
+  display: block;
+  width: 100%;
+  padding: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-text);
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 12px;
+  margin-top: 4px;
+}
+
+.date-backBtn:hover { background: rgba(255, 255, 255, 0.15); }
+
 .date-choices { display: flex; flex-direction: column; gap: 10px; }
 
 .date-choiceBtn {
@@ -564,6 +586,20 @@ button { font-family: inherit; cursor: pointer; }
   margin: 0 auto;
   text-align: center;
   padding: 24px 0;
+}
+
+.ending-imgWrap {
+  margin-bottom: 20px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.ending-img {
+  display: block;
+  width: 100%;
+  height: auto;
+  vertical-align: top;
 }
 
 .ending-titleHappy {

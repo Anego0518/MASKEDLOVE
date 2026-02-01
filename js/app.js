@@ -2,16 +2,43 @@
   'use strict';
 
   // --- DATA ---
-  var CONDITION_TAGS = [
-    { id: 'cute', label: '可愛い', category: 'appearance' },
-    { id: 'cool', label: 'クール', category: 'appearance' },
-    { id: 'natural', label: 'ナチュラル', category: 'appearance' },
-    { id: 'gentle', label: '優しい', category: 'personality' },
-    { id: 'fun', label: '明るい', category: 'personality' },
-    { id: 'calm', label: '落ち着いている', category: 'personality' },
-    { id: 'warm', label: '温かい雰囲気', category: 'vibe' },
-    { id: 'mysterious', label: 'ミステリアス', category: 'vibe' },
+  // 女性とマッチング（相手が女性）で選べる項目 → player-female-1,2,3 に対応
+  var CONDITION_TAGS_FEMALE = [
+    { id: 'gentle_f', label: 'やさしい' },
+    { id: 'domestic', label: '家庭的' },
+    { id: 'smile_f', label: '笑顔が素敵' },
+    { id: 'cute', label: 'かわいい' },
+    { id: 'feminine', label: '女性らしい' },
+    { id: 'amaenbo', label: '甘えん坊' },
+    { id: 'sexy', label: 'セクシー' },
+    { id: 'accepting', label: '包容力がある' },
+    { id: 'kakkoii_f', label: 'かっこいい' },
   ];
+  // 男性とマッチング（相手が男性）で選べる項目 → player-male-1,2,3 に対応
+  var CONDITION_TAGS_MALE = [
+    { id: 'kakkoii_m', label: 'かっこいい' },
+    { id: 'smile_m', label: '笑顔が素敵' },
+    { id: 'simple', label: '素朴' },
+    { id: 'gentle_m', label: 'やさしい' },
+    { id: 'hobby', label: '趣味が合う' },
+    { id: 'conversation', label: '会話が面白い' },
+    { id: 'cool_m', label: 'クール' },
+    { id: 'high_income', label: '高収入' },
+    { id: 'high_education', label: '高学歴' },
+  ];
+  // 対応表: キャラパターン(1～3)ごとの項目ID。同数時は 1 → 2 → 3 の順で優先
+  var CHARACTER_TRAITS = {
+    female: {
+      1: ['gentle_f', 'domestic', 'smile_f'],
+      2: ['cute', 'feminine', 'amaenbo'],
+      3: ['sexy', 'accepting', 'kakkoii_f'],
+    },
+    male: {
+      1: ['kakkoii_m', 'smile_m', 'simple'],
+      2: ['gentle_m', 'hobby', 'conversation'],
+      3: ['cool_m', 'high_income', 'high_education'],
+    },
+  };
 
   var CHARACTERS = [
     {
@@ -120,6 +147,7 @@
     state.playerConditionIds = [];
     state.editParams = Object.assign({}, defaultEditParams);
     state.partnerImagePattern = null;
+    state._dateImageShown = undefined;
     state.playerChoiceMatching1 = null;
     state.partnerOkMatching1 = null;
     state.dateLineIndex = 0;
@@ -135,6 +163,7 @@
     state.playerConditionIds = [];
     state.editParams = Object.assign({}, defaultEditParams);
     state.partnerImagePattern = null;
+    state._dateImageShown = undefined;
     state.playerChoiceMatching1 = null;
     state.partnerOkMatching1 = null;
     state.dateLineIndex = 0;
@@ -236,20 +265,31 @@
     };
   }
 
+  // 選択された条件から、対応表に基づき最もあてはまるキャラパターン(1～3)を返す。同数時は1→2→3の順で優先
+  function getPartnerImagePatternFromConditions() {
+    var selected = state.playerConditionIds || [];
+    var partnerGender = state.playMode; // 女性とマッチング→相手は女性、男性とマッチング→相手は男性
+    var traits = CHARACTER_TRAITS[partnerGender];
+    if (!traits) return 1 + Math.floor(Math.random() * 3);
+    var scores = { 1: 0, 2: 0, 3: 0 };
+    for (var p = 1; p <= 3; p++) {
+      for (var i = 0; i < selected.length; i++) {
+        if (traits[p].indexOf(selected[i]) !== -1) scores[p]++;
+      }
+    }
+    var best = 1;
+    if (scores[2] > scores[best]) best = 2;
+    if (scores[3] > scores[best]) best = 3;
+    return best;
+  }
+
   function renderCondition() {
-    var partner = CHARACTERS.find(function (c) { return c.id === state.partnerId; });
-    var partnerDesired = CONDITION_TAGS.filter(function (t) {
-      return partner && partner.desiredConditionIds.indexOf(t.id) !== -1;
-    });
+    var tags = state.playMode === 'female' ? CONDITION_TAGS_FEMALE : CONDITION_TAGS_MALE;
     var selected = state._conditionSelected || [];
 
-    var tagButtons = CONDITION_TAGS.map(function (t) {
+    var tagButtons = tags.map(function (t) {
       var cls = 'condition-tag' + (selected.indexOf(t.id) !== -1 ? ' selected' : '');
       return '<button type="button" class="' + cls + '" data-id="' + t.id + '">' + escapeHtml(t.label) + '</button>';
-    }).join('');
-
-    var partnerTags = partnerDesired.map(function (t) {
-      return '<span class="condition-partnerTag">' + escapeHtml(t.label) + '</span>';
     }).join('');
 
     renderLayout(
@@ -257,10 +297,6 @@
         '<h2 class="condition-h2">条件設定</h2>' +
         '<p class="condition-lead">相手に求める条件を選んでね（複数可）</p>' +
         '<div class="condition-tagList" id="condition-tags">' + tagButtons + '</div>' +
-        '<section class="condition-partnerSection">' +
-          '<h3 class="condition-h3">相手があなたに求める条件</h3>' +
-          '<div class="condition-partnerTags">' + partnerTags + '</div>' +
-        '</section>' +
         '<button type="button" class="condition-nextBtn" id="btn-condition-next">加工フェーズへ</button>' +
       '</div>',
       true
@@ -279,6 +315,7 @@
     });
     document.getElementById('btn-condition-next').onclick = function () {
       setPlayerConditions(selected);
+      state.partnerImagePattern = getPartnerImagePatternFromConditions();
       delete state._conditionSelected;
       navigateTo('edit');
     };
@@ -382,11 +419,14 @@
     document.getElementById('btn-edit-next').onclick = function () { navigateTo('matching1'); };
   }
 
-  // 相手画像のパターン（1～3）。今はランダム。後で state.playerConditionIds 等で決定する
+  // 相手画像のパターン（1～3）。条件指定で決まっていればそれを返し、未設定時は条件から算出、なければランダム
   function getPartnerImagePattern() {
-    if (state.partnerImagePattern == null) {
-      state.partnerImagePattern = 1 + Math.floor(Math.random() * 3);
+    if (state.partnerImagePattern != null) return state.partnerImagePattern;
+    if (state.playerConditionIds && state.playerConditionIds.length > 0) {
+      state.partnerImagePattern = getPartnerImagePatternFromConditions();
+      return state.partnerImagePattern;
     }
+    state.partnerImagePattern = 1 + Math.floor(Math.random() * 3);
     return state.partnerImagePattern;
   }
 
@@ -419,10 +459,9 @@
         '</div>';
     }
 
-    var playerEditLevel = state.editParams.editLevel || 1;
-    var partnerEditLevel = Math.min(4, playerEditLevel + 1);
     var partnerGender = partner.gender === 'female' ? 'female' : 'male';
     var partnerPattern = getPartnerImagePattern();
+    var partnerEditLevel = 4;
     var partnerImgSrc = 'images/partner-' + partnerGender + '-' + partnerPattern + '-' + partnerEditLevel + '.png';
     var partnerImgFallback = 'images/partner-' + partnerGender + '-edited.png';
     renderLayout(
@@ -500,28 +539,54 @@
 
     var partnerGender = partner.gender === 'female' ? 'female' : 'male';
     var partnerPattern = state.partnerImagePattern != null ? state.partnerImagePattern : 1;
-    var partnerFaceSrc = 'images/partner-' + partnerGender + '-' + partnerPattern + '.png';
+    var partnerFaceSrc = 'images/player-' + partnerGender + '-' + partnerPattern + '-date.png';
     var partnerFaceFallback = 'images/player-' + partnerGender + '.png';
+    var dateImageAlreadyShown = state._dateImageShown === true;
+    var overlayClasses = 'date-partnerOverlay' + (dateImageAlreadyShown ? ' date-partnerOverlay--visible' : ' date-partnerOverlay--hidden');
     renderLayout(
       '<div class="date-bg">' +
-        '<div class="date-wrap">' +
-          '<h2 class="date-h2">デート（アンヴェール）</h2>' +
-          '<p class="date-lead">素顔で会って、会話しよう。</p>' +
-          '<div class="date-partnerFace">' +
-            '<img src="' + partnerFaceSrc + '" alt="' + escapeHtml(partner.name) + '（素顔）" class="date-partnerImg" id="date-partnerImg" data-fallback="' + partnerFaceFallback + '">' +
+        '<div class="date-bgTop">' +
+          '<div class="' + overlayClasses + '" id="date-partnerOverlay">' +
+            '<div class="date-partnerFace">' +
+              '<img src="' + partnerFaceSrc + '" alt="' + escapeHtml(partner.name) + '（素顔）" class="date-partnerImg" id="date-partnerImg" data-fallback="' + partnerFaceFallback + '" data-fallback2="images/partner-' + partnerGender + '-' + partnerPattern + '.png">' +
+            '</div>' +
           '</div>' +
-          '<p class="date-faceLabel">' + escapeHtml(partner.name) + '（素顔）</p>' +
-          '<div class="date-dialogue" id="date-dialogue">' + dialogueHtml + '</div>' +
+        '</div>' +
+        '<div class="date-content">' +
+          '<div class="date-wrap">' +
+            '<h2 class="date-h2">デート（アンヴェール）</h2>' +
+            '<p class="date-lead">素顔で会って、会話しよう。</p>' +
+            '<p class="date-faceLabel">' + escapeHtml(partner.name) + '（素顔）</p>' +
+            '<div class="date-dialogue" id="date-dialogue">' + dialogueHtml + '</div>' +
+          '</div>' +
         '</div>' +
       '</div>',
       true
     );
 
+    var overlay = document.getElementById('date-partnerOverlay');
+    if (overlay && !dateImageAlreadyShown) {
+      requestAnimationFrame(function () {
+        setTimeout(function () {
+          overlay.classList.remove('date-partnerOverlay--hidden');
+          overlay.classList.add('date-partnerOverlay--visible');
+          state._dateImageShown = true;
+        }, 500);
+      });
+    }
+
     var dateImg = document.getElementById('date-partnerImg');
     if (dateImg) {
       dateImg.onerror = function () {
         var fallback = this.getAttribute('data-fallback');
-        if (fallback) { this.onerror = null; this.src = fallback; }
+        var fallback2 = this.getAttribute('data-fallback2');
+        if (fallback2 && this.src && this.src.indexOf('partner-') !== -1) {
+          this.onerror = null;
+          this.src = fallback2;
+        } else if (fallback) {
+          this.src = fallback;
+          this.setAttribute('data-fallback', fallback2 || '');
+        }
       };
     }
 
@@ -567,14 +632,17 @@
         '</div>';
     }
 
-    var partnerFaceSrc = 'images/player-' + (partner.gender === 'female' ? 'female' : 'male') + '.png';
+    var partnerGender = partner.gender === 'female' ? 'female' : 'male';
+    var partnerPattern = state.partnerImagePattern != null ? state.partnerImagePattern : 1;
+    var partnerFaceSrc = 'images/partner-' + partnerGender + '-' + partnerPattern + '-1.png';
+    var partnerFaceFallback = 'images/player-' + partnerGender + '.png';
     renderLayout(
       '<div class="match-wrap">' +
         '<h2 class="match-h2">第2マッチング（素顔）</h2>' +
         '<p class="match-lead">素顔を知った上で、もう一度 OK / NG を選んでね。</p>' +
         '<div class="match-card">' +
           '<div class="match-cardImage">' +
-            '<img src="' + partnerFaceSrc + '" alt="' + escapeHtml(partner.name) + '" class="match-partnerImg">' +
+            '<img src="' + partnerFaceSrc + '" alt="' + escapeHtml(partner.name) + '" class="match-partnerImg" id="m2-partnerImg" data-fallback="' + partnerFaceFallback + '">' +
           '</div>' +
           '<p class="match-avatarText">' + escapeHtml(partner.name) + ', ' + partner.age + '</p>' +
           '<p class="match-cardDesc">相手の素顔です。</p>' +
@@ -583,6 +651,14 @@
       '</div>',
       true
     );
+
+    var m2Img = document.getElementById('m2-partnerImg');
+    if (m2Img) {
+      m2Img.onerror = function () {
+        var fallback = this.getAttribute('data-fallback');
+        if (fallback) { this.onerror = null; this.src = fallback; }
+      };
+    }
 
     if (playerChoice === undefined) {
       function decide(ok) {

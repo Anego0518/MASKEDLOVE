@@ -168,6 +168,7 @@
     var hash = (window.location.hash || '#').slice(1).toLowerCase();
     var map = {
       '': 'title',
+      credit: 'credit',
       condition: 'condition',
       edit: 'edit',
       matching1: 'matching1',
@@ -205,6 +206,7 @@
   function renderTitle() {
     renderLayout(
       '<div class="title-wrap">' +
+        '<button type="button" class="title-creditBtn" id="btn-credit">Credit</button>' +
         '<img src="images/Title logo.png" alt="MASKED LOVE" class="title-logo">' +
         '<p class="title-sub">［加工］が当たり前の時代、本当の愛はどこにある？</p>' +
         '<p class="title-desc">マッチングアプリで結婚相手を見つけ、Happy END を迎えよう。</p>' +
@@ -227,6 +229,28 @@
       setPhase('condition');
       navigateTo('condition');
     };
+    var creditBtn = document.getElementById('btn-credit');
+    if (creditBtn) creditBtn.onclick = function () { navigateTo('credit'); };
+  }
+
+  function renderCredit() {
+    var creditHtml =
+      '<h2 class="credit-h2">=== STAFF CREDIT ===</h2>' +
+      '<div class="credit-list">' +
+      '<div class="credit-row"><span class="credit-label">GAME BY</span><span class="credit-value">Izumi Ayaka</span></div>' +
+      '<div class="credit-row"><span class="credit-label">CODE BY</span><span class="credit-value">かーくん（Cursor）</span></div>' +
+      '<div class="credit-row"><span class="credit-label">ART BY</span><span class="credit-value">Izumi Ayaka with Grok</span></div>' +
+      '<div class="credit-row"><span class="credit-label">STORY BY</span><span class="credit-value">Izumi Ayaka</span></div>' +
+      '<div class="credit-row"><span class="credit-label">LEAD AI PARTNER</span><span class="credit-value">Cursor（クールでシゴデキ）</span></div>' +
+      '<div class="credit-row"><span class="credit-label">AI PARTNER</span><span class="credit-value">Chat GPT(優しいけど優しさだけ)</span></div>' +
+      '<div class="credit-row credit-rowSub"><span class="credit-label"></span><span class="credit-value">Grok（悪意ある画像が得意）</span></div>' +
+      '<div class="credit-row credit-rowSub"><span class="credit-label"></span><span class="credit-value">Copilot（ちょっと倫理観が高すぎるゾ）</span></div>' +
+      '</div>' +
+      '<h2 class="credit-h2">SPECIAL THANKS</h2>' +
+      '<p class="credit-by">- tatmos （ちゃり、たなかたかし）</p>' +
+      '<button type="button" class="credit-backBtn" id="btn-credit-back">戻る</button>';
+    renderLayout('<div class="credit-wrap">' + creditHtml + '</div>', true);
+    document.getElementById('btn-credit-back').onclick = function () { navigateTo('title'); };
   }
 
   // 選択された条件から、対応表に基づき最もあてはまるキャラパターン(1～3)を返す。優先1=3点、優先2=2点、優先3=1点で重み付け。同点時は1→2→3の順で優先
@@ -711,6 +735,7 @@
     var phase = getPhaseFromHash();
     state.phase = phase;
     if (phase === 'title') renderTitle();
+    else if (phase === 'credit') renderCredit();
     else if (phase === 'condition') renderCondition();
     else if (phase === 'edit') renderEdit();
     else if (phase === 'matching1') renderMatching1();

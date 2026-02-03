@@ -61,6 +61,7 @@ button { font-family: inherit; cursor: pointer; }
 
 /* === TitlePhase === */
 .title-wrap {
+  position: relative;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -68,6 +69,23 @@ button { font-family: inherit; cursor: pointer; }
   justify-content: center;
   padding: 24px;
   text-align: center;
+}
+
+.title-creditBtn {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  padding: 6px 12px;
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+}
+
+.title-creditBtn:hover {
+  color: rgba(255, 255, 255, 0.95);
+  background: rgba(255, 255, 255, 0.12);
 }
 
 .title-logo {
@@ -650,3 +668,66 @@ button { font-family: inherit; cursor: pointer; }
 }
 
 .ending-titleBtn:hover { background: rgba(255, 255, 255, 0.15); }
+
+/* === CreditPage === */
+.credit-wrap {
+  max-width: 360px;
+  margin: 0 auto;
+  padding: 24px 0;
+  text-align: center;
+}
+
+.credit-h2 {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-muted);
+  margin: 24px 0 8px;
+  letter-spacing: 0.05em;
+}
+
+.credit-h2:first-child { margin-top: 0; }
+
+.credit-list {
+  text-align: left;
+  max-width: 320px;
+  margin: 0 auto 8px;
+}
+
+.credit-row {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 4px;
+  font-size: 0.85rem;
+}
+
+.credit-label {
+  flex-shrink: 0;
+  width: 130px;
+  color: var(--color-muted);
+}
+
+.credit-value { color: var(--color-text); }
+
+.credit-rowSub .credit-label { min-width: 130px; }
+
+.credit-by {
+  font-size: 0.9rem;
+  color: var(--color-text);
+  margin: 0 0 8px;
+}
+
+.credit-backBtn {
+  display: block;
+  width: 100%;
+  max-width: 200px;
+  margin: 32px auto 0;
+  padding: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-text);
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 12px;
+}
+
+.credit-backBtn:hover { background: rgba(255, 255, 255, 0.15); }
